@@ -20,11 +20,11 @@
 
 namespace Phalcon\Commands\Builtin;
 
-use Phalcon\Builder,
-    Phalcon\Script\Color,
-    Phalcon\Commands\Command,
-    Phalcon\Commands\CommandsInterface,
-    Phalcon\Migrations;
+use Phalcon\Builder;
+use Phalcon\Script\Color;
+use Phalcon\Commands\Command;
+use Phalcon\Commands\CommandsInterface;
+use Phalcon\Migrations;
 
 /**
  * Migration
@@ -41,14 +41,16 @@ class Migration extends Command implements CommandsInterface
 {
 
     protected $_possibleParameters = array(
-        'action=s' 		=> "Generates a Migration [generate|run]",
-        'config=s' 		=> "Configuration file.",
-        'migrations=s'	=> "Migrations directory.",
-        'directory=s' 	=> "Directory where the project was created.",
-        'table=s' 		=> "Table to migrate. Default: all.",
-        'version=s' 	=> "Version to migrate.",
-        'force' 		=> "Forces to overwrite existing migrations.",
-        'dump'          => "Do not execute queries, only show them"
+        'action=s'      => "Generates a Migration [generate|run]",
+        'config=s'      => "Configuration file.",
+        'migrations=s'  => "Migrations directory.",
+        'directory=s'   => "Directory where the project was created.",
+        'table=s'       => "Table to migrate. Default: all.",
+        'version=s'     => "Version to migrate.",
+        'force'         => "Forces to overwrite existing migrations.",
+        'dump'          => "Do not execute queries, only show them",
+        'ignore-drop'   => "Do not execute drop queries",
+        'ignore-alter'  => "Do not execute alter queries"
     );
 
     /**
@@ -158,6 +160,8 @@ class Migration extends Command implements CommandsInterface
                 'force' => $this->isReceivedOption('force'),
                 'config' => $config,
                 'dump' => $this->isReceivedOption('dump'),
+                'ignore-drop' => $this->isReceivedOption('ignore-drop'),
+                'ignore-alter' => $this->isReceivedOption('ignore-alter'),
             ));
         } else {
             if ($action == 'run') {
@@ -167,6 +171,8 @@ class Migration extends Command implements CommandsInterface
                     'force' => $this->isReceivedOption('force'),
                     'config' => $config,
                     'dump' => $this->isReceivedOption('dump'),
+                    'ignore-drop' => $this->isReceivedOption('ignore-drop'),
+                    'ignore-alter' => $this->isReceivedOption('ignore-alter'),
                 ));
             }
         }

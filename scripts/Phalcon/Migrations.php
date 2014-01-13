@@ -168,9 +168,17 @@ class Migrations
         }
 
         $dump = $options['dump'];
+        $ignoreDrop = $options['ignore-drop'];
+        $ignoreAlter = $options['ignore-alter'];
+
+        $options = [
+            'dump' => $dump,
+            'ignoreDrop' => $ignoreDrop,
+            'ignoreAlter' => $ignoreAlter,
+        ];
 
         if (isset($config->database)) {
-            ModelMigration::setup($config->database, $dump);
+            ModelMigration::setup($config->database, $options);
         } else {
             throw new \Exception("Cannot load database configuration");
         }
