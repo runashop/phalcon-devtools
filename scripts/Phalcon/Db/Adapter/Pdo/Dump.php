@@ -66,7 +66,9 @@ class Dump extends Mysql
         $result = [
 
             $type,
-            '(' . join(',', array_map(function($item) use ($indexInfo) { return '`' . $item . '`'; }, $indexInfo->getColumns())) . ')',
+            '(' . join(',', array_map(function($item) use ($indexInfo) {
+                                            return '`' . $item . '`';
+                                        }, $indexInfo->getColumns())) . ')',
 
         ];
         return join(' ', $result);
