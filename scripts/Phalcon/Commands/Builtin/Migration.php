@@ -50,7 +50,7 @@ class Migration extends Command implements CommandsInterface
         'force'         => "Forces to overwrite existing migrations.",
         'dump'          => "Do not execute queries, only show them",
         'ignore-drop'   => "Do not execute drop queries",
-        'ignore-alter' => "Do not execute alter queries"
+        'ignore-alter'  => "Do not execute alter queries"
     );
 
     /**
