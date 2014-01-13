@@ -10,7 +10,7 @@ class Dump extends Mysql
 
     protected $_types = [
         '0' => 'INT',
-		'1' => 'DATE',
+        '1' => 'DATE',
         '2' => 'VARCHAR',
         '3' => 'DECIMAL',
         '4' => 'DATETIME',
@@ -119,7 +119,8 @@ class Dump extends Mysql
 
     public function modifyColumn($tableName, $schemaName, $column)
     {
-        echo "ALTER TABLE {$tableName} CHANGE COLUMN `{$column->getName()}` " . $this->getCreateTableColumn($column) . ";" . PHP_EOL;
+        echo "ALTER TABLE {$tableName} CHANGE COLUMN `{$column->getName()}` "
+                    . $this->getCreateTableColumn($column) . ";" . PHP_EOL;
     }
 
     public function dropColumn($tableName, $schemaName, $columnName)
@@ -151,8 +152,13 @@ class Dump extends Mysql
     {
         $result = [ "ALTER TABLE {$tableName}",
                     "ADD CONSTRAINT `{$reference->getName()}`",
-                    'FOREIGN KEY(' . join(',', array_map(function($item) { return '`' . $item . '`';}, $reference->getColumns())) . ')',
-                    "REFERENCES {$reference->getReferencedTable()} (" . join(',', array_map(function($item) { return '`' . $item . '`';}, $reference->getReferencedColumns())) . ')',
+                    'FOREIGN KEY(' . join(',', array_map(function($item) {
+                                                            return '`' . $item . '`';
+                                                        }, $reference->getColumns())) . ')',
+                    "REFERENCES {$reference->getReferencedTable()} ("
+                    . join(',', array_map(function($item) {
+                                              return '`' . $item . '`';
+                                          }, $reference->getReferencedColumns())) . ')',
                     "ON DELETE NO ACTION",
                     "ON UPDATE NO ACTION;"];
         echo join(" ", $result) . PHP_EOL;
