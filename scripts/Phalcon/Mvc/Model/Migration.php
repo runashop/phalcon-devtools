@@ -402,14 +402,12 @@ class ".$className." extends Migration\n".
 
                 $localFields = array();
                 $description = self::$_connection->describeColumns($tableName, $defaultSchema);
-
                 foreach ($description as $field) {
                     $localFields[$field->getName()] = $field;
                 }
 
                 foreach ($fields as $fieldName => $tableColumn) {
                     if (!isset($localFields[$fieldName])) {
-                        //TODO: add column
                         self::$_connection->addColumn($tableName, $tableColumn->getSchemaName(), $tableColumn);
                     } else {
 
@@ -424,7 +422,6 @@ class ".$className." extends Migration\n".
                         }
 
                         if ($changed == true) {
-                            //TODO: modify column
                             self::$_connection->modifyColumn($tableName, $tableColumn->getSchemaName(), $tableColumn);
                         }
                     }
@@ -432,7 +429,6 @@ class ".$className." extends Migration\n".
 
                 foreach ($localFields as $fieldName => $localField) {
                     if (!isset($fields[$fieldName])) {
-                        //TODO: drop column
                         self::$_connection->dropColumn($tableName, null, $fieldName);
                     }
                 }
