@@ -167,8 +167,10 @@ class Migrations
             $fromVersion = (string) $version;
         }
 
+        $dump = $options['dump'];
+
         if (isset($config->database)) {
-            ModelMigration::setup($config->database);
+            ModelMigration::setup($config->database, $dump);
         } else {
             throw new \Exception("Cannot load database configuration");
         }
@@ -193,7 +195,11 @@ class Migrations
                     throw new ScriptException('Migration class was not found '.$migrationPath);
                 }
             }
-            print Color::success('Version '.$version.' was successfully migrated').PHP_EOL;
+            if ($dump) {
+                print Color::success('Version '.$version.' was successfully displayed').PHP_EOL;
+            } else {
+                print Color::success('Version '.$version.' was successfully migrated').PHP_EOL;
+            }
         }
 
         file_put_contents($migrationFid, (string) $version);

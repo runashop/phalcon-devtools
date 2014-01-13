@@ -59,6 +59,8 @@ class Migration
      */
     private static $_migrationPath = null;
 
+    private static $_dump = false;
+
     /**
      * Prepares component
      *
@@ -66,13 +68,19 @@ class Migration
      *
      * @throws \Phalcon\Exception
      */
-    public static function setup($database)
+    public static function setup($database, $dump = false)
     {
 
         if ( ! isset($database->adapter))
             throw new \Phalcon\Exception('Unspecified database Adapter in your configuration!');
 
-        $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
+        self::$_dump = (bool)$dump;
+
+        if (self::$_dump) {
+            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\Dump';
+        } else {
+            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
+        }
 
         if ( ! class_exists($adapter))
             throw new \Phalcon\Exception('Invalid database Adapter!');
@@ -82,7 +90,7 @@ class Migration
         self::$_connection = new $adapter($configArray);
         self::$_databaseConfig = $database;
 
-        if ( \Phalcon\Migrations::isConsole() ) {
+        if ( \Phalcon\Migrations::isConsole() && !self::$_dump) {
             $profiler = new Profiler();
 
             $eventsManager = new EventsManager();
@@ -394,12 +402,14 @@ class ".$className." extends Migration\n".
 
                 $localFields = array();
                 $description = self::$_connection->describeColumns($tableName, $defaultSchema);
+
                 foreach ($description as $field) {
                     $localFields[$field->getName()] = $field;
                 }
 
                 foreach ($fields as $fieldName => $tableColumn) {
                     if (!isset($localFields[$fieldName])) {
+                        //TODO: add column
                         self::$_connection->addColumn($tableName, $tableColumn->getSchemaName(), $tableColumn);
                     } else {
 
@@ -414,6 +424,7 @@ class ".$className." extends Migration\n".
                         }
 
                         if ($changed == true) {
+                            //TODO: modify column
                             self::$_connection->modifyColumn($tableName, $tableColumn->getSchemaName(), $tableColumn);
                         }
                     }
@@ -421,6 +432,7 @@ class ".$className." extends Migration\n".
 
                 foreach ($localFields as $fieldName => $localField) {
                     if (!isset($fields[$fieldName])) {
+                        //TODO: drop column
                         self::$_connection->dropColumn($tableName, null, $fieldName);
                     }
                 }

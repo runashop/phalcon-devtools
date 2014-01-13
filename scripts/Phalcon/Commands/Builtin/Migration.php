@@ -48,6 +48,7 @@ class Migration extends Command implements CommandsInterface
         'table=s' 		=> "Table to migrate. Default: all.",
         'version=s' 	=> "Version to migrate.",
         'force' 		=> "Forces to overwrite existing migrations.",
+        'dump'          => "Do not execute queries, only show them"
     );
 
     /**
@@ -155,7 +156,8 @@ class Migration extends Command implements CommandsInterface
                 'migrationsDir' => $migrationsDir,
                 'originalVersion' => $originalVersion,
                 'force' => $this->isReceivedOption('force'),
-                'config' => $config
+                'config' => $config,
+                'dump' => $this->isReceivedOption('dump'),
             ));
         } else {
             if ($action == 'run') {
@@ -163,7 +165,8 @@ class Migration extends Command implements CommandsInterface
                     'directory' => $path,
                     'migrationsDir' => $migrationsDir,
                     'force' => $this->isReceivedOption('force'),
-                    'config' => $config
+                    'config' => $config,
+                    'dump' => $this->isReceivedOption('dump'),
                 ));
             }
         }
