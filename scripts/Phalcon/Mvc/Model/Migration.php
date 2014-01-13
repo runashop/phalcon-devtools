@@ -60,6 +60,8 @@ class Migration
     private static $_migrationPath = null;
 
     private static $_dump = false;
+    private static $_ignoreDrop = false;
+    private static $_ignoreAlter = false;
 
     /**
      * Prepares component
@@ -68,13 +70,15 @@ class Migration
      *
      * @throws \Phalcon\Exception
      */
-    public static function setup($database, $dump = false)
+    public static function setup($database, $options = [])
     {
 
         if ( ! isset($database->adapter))
             throw new \Phalcon\Exception('Unspecified database Adapter in your configuration!');
 
-        self::$_dump = (bool)$dump;
+        self::$_dump = isset($options['dump']) ? (bool)$options['dump'] : false;
+        self::$_ignoreDrop  = isset($options['ignoreDrop']) ? (bool)$options['ignoreDrop'] : false;
+        self::$_ignoreAlter = isset($options['ignoreAlter']) ? (bool)$options['ignoreAlter'] : false;
 
         if (self::$_dump) {
             $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\Dump';
@@ -421,14 +425,14 @@ class ".$className." extends Migration\n".
                             $changed = true;
                         }
 
-                        if ($changed == true) {
+                        if ($changed == true && !self::$_ignoreAlter) {
                             self::$_connection->modifyColumn($tableName, $tableColumn->getSchemaName(), $tableColumn);
                         }
                     }
                 }
 
                 foreach ($localFields as $fieldName => $localField) {
-                    if (!isset($fields[$fieldName])) {
+                    if (!isset($fields[$fieldName]) && !self::$_ignoreDrop) {
                         self::$_connection->dropColumn($tableName, null, $fieldName);
                     }
                 }
@@ -496,7 +500,7 @@ class ".$className." extends Migration\n".
                             }
                         }
 
-                        if ($changed == true) {
+                        if ($changed == true && !self::$_ignoreAlter) {
                             self::$_connection->dropForeignKey($tableName, $tableReference->getSchemaName(), $tableReference->getName());
                             self::$_connection->addForeignKey($tableName, $tableReference->getSchemaName(), $tableReference);
                         }
@@ -504,7 +508,7 @@ class ".$className." extends Migration\n".
                 }
 
                 foreach ($localReferences as $referenceName => $reference) {
-                    if (!isset($references[$referenceName])) {
+                    if (!isset($references[$referenceName]) && !self::$_ignoreDrop) {
                         self::$_connection->dropForeignKey($tableName, null, $referenceName);
                     }
                 }
@@ -545,7 +549,7 @@ class ".$className." extends Migration\n".
                                 }
                             }
                         }
-                        if ($changed == true) {
+                        if ($changed == true && !self::$_ignoreAlter) {
                             if ($tableIndex->getName() == 'PRIMARY') {
                                 self::$_connection->dropPrimaryKey($tableName, $tableColumn->getSchemaName());
                                 self::$_connection->addPrimaryKey($tableName, $tableColumn->getSchemaName(), $tableIndex);
@@ -557,7 +561,7 @@ class ".$className." extends Migration\n".
                     }
                 }
                 foreach ($localIndexes as $indexName => $indexColumns) {
-                    if (!isset($indexes[$indexName])) {
+                    if (!isset($indexes[$indexName]) && !self::$_ignoreDrop) {
                         self::$_connection->dropIndex($tableName, null, $indexName);
                     }
                 }
