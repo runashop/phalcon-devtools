@@ -4,9 +4,18 @@ namespace Phalcon\Db\Adapter\Pdo;
 
 use \Phalcon\Db\RasColumn as Column;
 
-class RasMysql  extends Mysql{
+class RasMysql extends Mysql {
 
-    public function describeColumns($table, $schema=null)
+    const NOT_NULL = 'NO';
+
+    /**
+     * describes a table
+     *
+     * @param string $table
+     * @param null $schema
+     * @return array|\Phalcon\Db\Column[]
+     */
+    public function describeColumns($table, $schema = null)
     {
         if (null !== $schema) {
             $table = $schema . '.' . $table;
@@ -20,6 +29,14 @@ class RasMysql  extends Mysql{
         return $columns;
     }
 
+    /**
+     *
+     * returns generated Column by array of definitions
+     *
+     * @param array $columnInfo
+     * @param bool $isFirst
+     * @return Column
+     */
     protected function getColumn($columnInfo, $isFirst = false)
     {
         $column = [
@@ -27,7 +44,6 @@ class RasMysql  extends Mysql{
             'size' => 0,
             'unsigned' => false,
             'notNull' => false,
-            //'autoIncrement' => false,
             'first' => $isFirst,
             'default' => $columnInfo['Default'],
         ];
@@ -76,13 +92,11 @@ class RasMysql  extends Mysql{
             $column['size'] = $matches[1];
         }
 
-
-
         if ($columnInfo['Type'] && strpos('unsigned', $columnInfo['Type']) !== false) {
             $column['unsigned'] = true;
         }
 
-        if ($columnInfo['Null'] === 'NO') {
+        if ($columnInfo['Null'] === self::NOT_NULL) {
             $column['notNull'] = true;
         }
 
@@ -93,18 +107,42 @@ class RasMysql  extends Mysql{
         return new Column($columnInfo['Field'], $column);
     }
 
+    /**
+     * creates table
+     *
+     * @param string $tableName
+     * @param string $schemaName
+     * @param array $definition
+     * @return bool
+     */
     public function createTable($tableName, $schemaName, $definition)
     {
         $sql = Dump::createTableSQL($tableName, $schemaName, $definition);
         $this->execute($sql);
     }
 
+    /**
+     * creates new column
+     *
+     * @param string $tableName
+     * @param string $schemaName
+     * @param \Phalcon\Db\Column|\Phalcon\Db\ColumnInterface $column
+     * @return void
+     */
     public function addColumn($tableName, $schemaName, $column)
     {
         $sql = Dump::addColumnSQL($tableName, $schemaName, $column);
         $this->execute($sql);
     }
 
+    /**
+     * alters a column
+     *
+     * @param string $tableName
+     * @param string $schemaName
+     * @param \Phalcon\Db\Column|\Phalcon\Db\ColumnInterface $column
+     * @return void
+     */
     public function modifyColumn($tableName, $schemaName, $column)
     {
         $sql = Dump::modifyColumnSQL($tableName, $schemaName, $column);

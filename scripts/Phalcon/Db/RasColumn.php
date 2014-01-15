@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: qwerty
- * Date: 15.01.14
- * Time: 12:08
- */
 
 namespace Phalcon\Db;
 
