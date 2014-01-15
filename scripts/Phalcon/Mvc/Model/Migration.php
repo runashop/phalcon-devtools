@@ -21,6 +21,7 @@
 namespace Phalcon\Mvc\Model;
 
 use Phalcon\Db\Column;
+use Phalcon\Db\RasColumn;
 use Phalcon\Mvc\Model\Migration\Profiler;
 use Phalcon\Mvc\Model\Exception;
 use Phalcon\Events\Manager as EventsManager;
@@ -77,13 +78,14 @@ class Migration
             throw new \Phalcon\Exception('Unspecified database Adapter in your configuration!');
 
         self::$_dump = isset($options['dump']) ? (bool)$options['dump'] : false;
+        $useRas = isset($options['useRas']) ? true : false;
         self::$_ignoreDrop  = isset($options['ignoreDrop']) ? (bool)$options['ignoreDrop'] : false;
         self::$_ignoreAlter = isset($options['ignoreAlter']) ? (bool)$options['ignoreAlter'] : false;
 
-        if (self::$_dump) {
+        if ($useRas) {
             $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\Dump';
         } else {
-            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
+            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\RasMysql';
         }
 
         if ( ! class_exists($adapter))
@@ -167,6 +169,7 @@ class Migration
                 }
 
         $description = self::$_connection->describeColumns($table, $defaultSchema);
+        /** @var $field RasColumn */
         foreach ($description as $field) {
             $fieldDefinition = array();
             switch ($field->getType()) {
@@ -187,19 +190,24 @@ class Migration
                     $fieldDefinition[] = "'type' => Column::TYPE_DATETIME";
                     break;
                 case Column::TYPE_DECIMAL:
-                        $fieldDefinition[] = "'type' => Column::TYPE_DECIMAL";
+                    $fieldDefinition[] = "'type' => Column::TYPE_DECIMAL";
                     $numericFields[$field->getName()] = true;
                     break;
                 case Column::TYPE_TEXT:
                     $fieldDefinition[] = "'type' => Column::TYPE_TEXT";
                     break;
                 case Column::TYPE_BOOLEAN:
-                                        $fieldDefinition[] = "'type' => Column::TYPE_BOOLEAN";
-                                        break;
-                                case Column::TYPE_FLOAT:
-                                        $fieldDefinition[] = "'type' => Column::TYPE_FLOAT";
-                                        break;
-
+                    $fieldDefinition[] = "'type' => Column::TYPE_BOOLEAN";
+                    break;
+                case Column::TYPE_FLOAT:
+                    $fieldDefinition[] = "'type' => Column::TYPE_FLOAT";
+                    break;
+                case RasColumn::TYPE_ENUM:
+                    $fieldDefinition[] = "'type' => Column::TYPE_ENUM";
+                    break;
+                case RasColumn::TYPE_TIME:
+                    $fieldDefinition[] = "'type' => Column::TYPE_TIME";
+                    break;
                 default:
                     throw new Exception('Unrecognized data type ' . $field->getType() . ' at column ' . $field->getName());
             }
@@ -216,15 +224,24 @@ class Migration
                 $fieldDefinition[] = "'autoIncrement' => true";
             }
 
-            if ($field->getSize()) {
-                        $fieldDefinition[] = "'size' => " . $field->getSize();
-                } else {
-                    $fieldDefinition[] = "'size' => 1";
-                }
+            if ($field->getDefault()) {
+                $fieldDefinition[] = "'defaultValue' => '" . addslashes($field->getDefault()) . "'";
+            }
 
-                        if ($field->getScale()) {
-                                $fieldDefinition[] = "'scale' => " . $field->getScale();
-                        }
+            if ($field->getSize()) {
+                $fieldDefinition[] = "'size' => " . $field->getSize();
+            }/* else {
+                $fieldDefinition[] = "'size' => 1";
+            }
+            */
+
+            if ($field->getScale()) {
+                $fieldDefinition[] = "'scale' => " . $field->getScale();
+            }
+
+            if ($field->getColumnValues()) {
+                $fieldDefinition[] = "'values' => " . json_encode($field->getColumnValues());
+            }
 
             if ($oldColumn != null) {
                 $fieldDefinition[] = "'after' => '" . $oldColumn . "'";
@@ -278,7 +295,7 @@ class Migration
 
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', $version);
         $className = \Phalcon\Text::camelize($table) . 'Migration_'.$classVersion;
-        $classData = "use Phalcon\\Db\\Column;
+        $classData = "use Phalcon\\Db\\RasColumn as Column;
 use Phalcon\\Db\\Index;
 use Phalcon\\Db\\Reference;
 use Phalcon\\Mvc\\Model\\Migration;

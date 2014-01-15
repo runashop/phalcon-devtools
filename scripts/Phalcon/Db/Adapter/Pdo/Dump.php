@@ -2,13 +2,13 @@
 
 namespace Phalcon\Db\Adapter\Pdo;
 
-use \Phalcon\Db\Column;
+use \Phalcon\Db\RasColumn as Column;
 use \Phalcon\Db\Index;
 
 class Dump extends Mysql
 {
 
-    protected $_types = [
+    static protected $_types = [
         '0' => 'INT',
         '1' => 'DATE',
         '2' => 'VARCHAR',
@@ -19,39 +19,30 @@ class Dump extends Mysql
         '7' => 'FLOAT',
         '8' => 'BOOLEAN',
         '9' => 'DOUBLE',
+        '32' => 'ENUM',
+        '33' => 'TIME',
     ];
 
-    /**
-     * @param $columnInfo Column
-     * @return string
-     */
-    private function getCreateTableColumn($columnInfo)
+    static private function getCreateTableColumn(Column $columnInfo)
     {
-        //`varchar` VARCHAR(45) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci' NULL,
+        $v = $columnInfo->getColumnValues();
+        $values = ($v
+                    ? '(' . implode(',', array_map(function($q){ return "'" . addslashes($q) . "'";}, $v)) . ')'
+                    : null);
         $result = [
             '`' . $columnInfo->getName() . '`',
-            ('' !== $columnInfo->getType()) ? $this->_types[$columnInfo->getType()] : '',
-            ($columnInfo->getSize()) ? '(' . $columnInfo->getSize() . ')' : '',
-            ($columnInfo->isUnsigned()) ? "UNSIGNED" : '',
-            ($columnInfo->isNotNull()) ? "NOT NULL" : '',
-            ($columnInfo->isAutoIncrement()) ? "AUTO_INCREMENT" : '',
-
+            ('' !== $columnInfo->getType()) ? self::$_types[$columnInfo->getType()] : null,
+            $columnInfo->getSize() ? '(' . $columnInfo->getSize() . ')' : $values,
+            ($columnInfo->isUnsigned()) ? "UNSIGNED" : null,
+            ($columnInfo->isNotNull()) ? "NOT NULL" : null,
+            ($columnInfo->isAutoIncrement()) ? "AUTO_INCREMENT" : null,
+            ($columnInfo->getDefault()) ? "DEFAULT " . $columnInfo->getDefault() : null,
         ];
-        return join(' ', $result);
+        return join(' ', array_values($result));
     }
 
-    /**
-     *
-     * PRIMARY KEY (`int`),
-       UNIQUE INDEX `datetime_UNIQUE` (`datetime` ASC),
-       INDEX `qweqwe` (`char` ASC));
-     *
-     * @param $indexInfo \Phalcon\Db\Index
-     * @return string
-     */
-    private function getCreateTableIndex($indexInfo)
+    static private function getCreateTableIndex($indexInfo)
     {
-        //`varchar` VARCHAR(45) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci' NULL,
         switch ($indexInfo->getName()) {
             case 'PRIMARY':
                 $type = 'PRIMARY KEY ';
@@ -74,53 +65,51 @@ class Dump extends Mysql
         return join(' ', $result);
     }
 
-    /**
-     *
-     * CREATE TABLE `runashop_pp2`.`test` (
-    `int` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `char` CHAR NULL DEFAULT '',
-    `varchar` VARCHAR(45) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci' NULL,
-    `datetime` DATETIME NULL,
-    PRIMARY KEY (`int`),
-    UNIQUE INDEX `datetime_UNIQUE` (`datetime` ASC),
-    INDEX `qweqwe` (`char` ASC));
-
-     *
-     * @param string $tableName
-     * @param string $schemaName
-     * @param array $definition
-     * @return bool|void
-     */
-    public function createTable($tableName, $schemaName, $definition)
+    static public function createTableSQL($tableName, $schemaName, $definition)
     {
         $sql = [];
         $columns = [];
         $keys = [];
         $sql[] = "CREATE TABLE " . $tableName . " (";
         foreach ($definition['columns'] as $column) {
-            $columns[] = $this->getCreateTableColumn($column);
+            $columns[] = self::getCreateTableColumn($column);
         }
         $columns[] = '';
         $sql[] = join(',', $columns);
         foreach ($definition['indexes'] as $index) {
-            $keys[] = $this->getCreateTableIndex($index);
+            $keys[] = self::getCreateTableIndex($index);
         }
         $sql[] = join(',', $keys);
         $sql[] = ") ENGINE = " . $definition['options']['ENGINE'];
         $sql[] = "AUTO_INCREMENT = " . $definition['options']['AUTO_INCREMENT'];
         $sql[] = "COLLATE = " . $definition['options']['TABLE_COLLATION'];
-        echo implode(' ', $sql) . PHP_EOL;
+        return implode(' ', $sql);
+    }
+
+    public function createTable($tableName, $schemaName, $definition)
+    {
+        echo self::createTableSQL($tableName, $schemaName, $definition) . ';' . PHP_EOL;
+    }
+
+    static public function addColumnSQL($tableName, $schemaName, $column)
+    {
+        return "ALTER TABLE {$tableName} ADD COLUMN " . self::getCreateTableColumn($column);
     }
 
     public function addColumn($tableName, $schemaName, $column)
     {
-        echo "ALTER TABLE {$tableName} ADD COLUMN " . $this->getCreateTableColumn($column) . ';' . PHP_EOL;
+        echo self::addColumnSQL($tableName, $schemaName, $column) . ';' . PHP_EOL;
+    }
+
+    static public function modifyColumnSQL($tableName, $schemaName, $column)
+    {
+        return "ALTER TABLE {$tableName} CHANGE COLUMN `{$column->getName()}` "
+        . self::getCreateTableColumn($column);
     }
 
     public function modifyColumn($tableName, $schemaName, $column)
     {
-        echo "ALTER TABLE {$tableName} CHANGE COLUMN `{$column->getName()}` "
-                    . $this->getCreateTableColumn($column) . ";" . PHP_EOL;
+        echo self::modifyColumnSQL($tableName, $schemaName, $column) . ";" . PHP_EOL;
     }
 
     public function dropColumn($tableName, $schemaName, $columnName)
