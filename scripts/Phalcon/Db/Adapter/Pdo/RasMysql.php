@@ -60,10 +60,10 @@ class RasMysql extends Mysql {
             case preg_match("/boolean|bool/", $columnInfo['Type']):
                 $column['type'] = Column::TYPE_BOOLEAN;
                 break;
-            case preg_match("/date/", $columnInfo['Type']):
+            case preg_match("/date$/", $columnInfo['Type']):
                 $column['type'] = Column::TYPE_DATE;
                 break;
-            case preg_match("/time/", $columnInfo['Type']):
+            case preg_match("/^time/", $columnInfo['Type']):
                 $column['type'] = Column::TYPE_TIME;
                 break;
             case preg_match("/[^r]char/", $columnInfo['Type']):
