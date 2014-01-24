@@ -66,7 +66,7 @@ class RasMysql extends Mysql {
             case preg_match("/time/", $columnInfo['Type']):
                 $column['type'] = Column::TYPE_TIME;
                 break;
-            case preg_match("/char/", $columnInfo['Type']):
+            case preg_match("/[^r]char/", $columnInfo['Type']):
                 $column['type'] = Column::TYPE_CHAR;
                 break;
             case preg_match("/datetime/", $columnInfo['Type']):
