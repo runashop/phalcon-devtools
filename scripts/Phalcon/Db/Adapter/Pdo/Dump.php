@@ -122,14 +122,24 @@ class Dump extends Mysql
         echo "ALTER TABLE {$tableName} DROP COLUMN `{$columnName}`" . ';' . PHP_EOL;
     }
 
+    static public function addIndexSQL($tableName, $schemaName, $index)
+    {
+        return "ALTER TABLE {$tableName} ADD " . static::getCreateTableIndex($index);
+    }
+
     public function addIndex($tableName, $schemaName, $index)
     {
-        echo "ALTER TABLE {$tableName} ADD " . $this->getCreateTableIndex($index) . ';' . PHP_EOL;
+        echo self::addIndexSQL($tableName, $schemaName, $index) . ';' . PHP_EOL;
+    }
+
+    static public function dropIndexSQL($tableName, $schemaName, $indexName)
+    {
+        return "ALTER TABLE {$tableName} DROP INDEX {$indexName}";
     }
 
     public function dropIndex($tableName, $schemaName, $indexName)
     {
-        echo "ALTER TABLE {$tableName} DROP INDEX {$indexName};" . PHP_EOL;
+        echo static::dropIndexSQL($tableName, $schemaName, $indexName) . ";" . PHP_EOL;
     }
 
     public function addPrimaryKey($tableName, $schemaName, $index)

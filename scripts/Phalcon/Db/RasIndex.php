@@ -14,5 +14,6 @@ class RasIndex extends Index{
     const TYPE_BTREE = 'BTREE';
     const TYPE_UNIQUE = 'UNIQUE';
     const TYPE_FULLTEXT = 'FULLTEXT';
+    const TYPE_PRIMARY = 'PRIMARY';
 
 } 

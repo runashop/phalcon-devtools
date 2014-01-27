@@ -5,7 +5,7 @@ namespace Phalcon\Db\Adapter\Pdo;
 use Phalcon\Db\RasIndex as Index;
 use Phalcon\Db\FullTextIndex;
 use Phalcon\Db\UniqueIndex;
-use \Phalcon\Db\RasColumn as Column;
+use Phalcon\Db\RasColumn as Column;
 
 class RasMysql extends Mysql {
 
@@ -119,7 +119,7 @@ class RasMysql extends Mysql {
         $groupedIndexes = [];
         $result = $this->fetchAll("SHOW INDEX FROM " . $table, \Pdo::FETCH_ASSOC);
         foreach ($result as $row) {
-            $groupedIndexes[$row['Key_name']] = $row;
+            $groupedIndexes[$row['Key_name']][] = $row;
         }
         foreach ($groupedIndexes as $indexName => $index) {
             $indexes[$indexName] = $this->getIndex($indexName, $index);
@@ -129,15 +129,20 @@ class RasMysql extends Mysql {
 
     protected function getIndex($name, $fields)
     {
-        $columns = array_intersect_key($fields, ['Column_name' => 1]);
-        switch ($fields['Index_type']) {
+        $columns = [];
+        foreach ($fields as $field) {
+            $columns[] = $field['Column_name'];
+        }
+        //$columns = array_intersect_key($fields, ['Column_name' => 1]);
+        //$columns = array_intersect_key($fields, ['Column_name' => 1]);
+        switch ($fields[0]['Index_type']) {
             case Index::TYPE_FULLTEXT:
                 return new FullTextIndex($name, $columns);
                 break;
-            case Index::TYPE_UNIQUE:
-                return new UniqueIndex($name, $columns);
-                break;
             case Index::TYPE_BTREE:
+                if ($name !== Index::TYPE_PRIMARY && $fields[0]['Non_unique'] == 0) {
+                    return new UniqueIndex($name, $columns);
+                }
             default:
                 return new Index($name, $columns);
         }
@@ -182,6 +187,20 @@ class RasMysql extends Mysql {
     public function modifyColumn($tableName, $schemaName, $column)
     {
         $sql = Dump::modifyColumnSQL($tableName, $schemaName, $column);
+        $this->execute($sql);
+    }
+
+    /**
+     * Adds an index to a table
+     *
+     * @param string $tableName
+     * @param string $schemaName
+     * @param \Phalcon\Db\IndexInterface $index
+     * @return 	boolean
+     */
+    public function addIndex($tableName, $schemaName, $index)
+    {
+        $sql = Dump::addIndexSQL($tableName, $schemaName, $index);
         $this->execute($sql);
     }
 } 

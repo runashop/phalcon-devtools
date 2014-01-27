@@ -262,7 +262,8 @@ class Migration
             foreach ($dbIndex->getColumns() as $indexColumn) {
                 $indexDefinition[] = "'" . $indexColumn . "'";
             }
-            $class = get_class($dbIndex);
+            $class = explode('\\',get_class($dbIndex));
+            $class = array_pop($class);
             $indexesDefinition[] = "\t\t\t\tnew {$class}('".$indexName."', array(" . join(", ", $indexDefinition) . "))";
         }
 
@@ -298,9 +299,11 @@ class Migration
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', $version);
         $className = \Phalcon\Text::camelize($table) . 'Migration_'.$classVersion;
         $classData = "use Phalcon\\Db\\RasColumn as Column;
-use Phalcon\\Db\\Index;
 use Phalcon\\Db\\Reference;
 use Phalcon\\Mvc\\Model\\Migration;
+use Phalcon\\Db\\RasIndex;
+use Phalcon\\Db\\FullTextIndex;
+use Phalcon\\Db\\UniqueIndex;
 
 class ".$className." extends Migration\n".
 "{\n\n".
@@ -559,6 +562,8 @@ class ".$className." extends Migration\n".
                     } else {
                         $changed = false;
                         if (count($tableIndex->getColumns()) != count($localIndexes[$tableIndex->getName()])) {
+                            $changed = true;
+                        } elseif (get_class($tableIndex) !== get_class($actualIndexes[$tableIndex->getName()])) {
                             $changed = true;
                         } else {
                             foreach ($tableIndex->getColumns() as $columnName) {
