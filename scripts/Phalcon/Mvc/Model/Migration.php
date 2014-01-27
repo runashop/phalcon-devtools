@@ -240,6 +240,7 @@ class Migration
             }
 
             if ($field->getColumnValues()) {
+                // var_export($field->getColumnValues(), true) for php < 5.4
                 $fieldDefinition[] = "'values' => " . json_encode($field->getColumnValues());
             }
 
@@ -261,7 +262,8 @@ class Migration
             foreach ($dbIndex->getColumns() as $indexColumn) {
                 $indexDefinition[] = "'" . $indexColumn . "'";
             }
-            $indexesDefinition[] = "\t\t\t\tnew Index('".$indexName."', array(" . join(", ", $indexDefinition) . "))";
+            $class = get_class($dbIndex);
+            $indexesDefinition[] = "\t\t\t\tnew {$class}('".$indexName."', array(" . join(", ", $indexDefinition) . "))";
         }
 
         $referencesDefinition = array();

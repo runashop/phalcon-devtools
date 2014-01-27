@@ -2,6 +2,7 @@
 
 namespace Phalcon\Db\Adapter\Pdo;
 
+use \Phalcon\Db\Column as PhalconColumn;
 use \Phalcon\Db\RasColumn as Column;
 use \Phalcon\Db\Index;
 
@@ -43,12 +44,16 @@ class Dump extends Mysql
 
     static private function getCreateTableIndex($indexInfo)
     {
-        switch ($indexInfo->getName()) {
-            case 'PRIMARY':
+        $class = get_class($indexInfo);
+        switch (true) {
+            case $indexInfo->getName() === 'PRIMARY':
                 $type = 'PRIMARY KEY ';
                 break;
-            case 'UNIQUE':
-                $type = 'UNIQUE INDEX `' . $indexInfo->getName() . '`';
+            case $class == "Phalcon\\Db\\UniqueIndex":
+                $type = 'UNIQUE KEY `' . $indexInfo->getName() . '`';
+                break;
+            case $class == "Phalcon\\Db\\FullTextIndex":
+                $type = 'FULLTEXT KEY  `' . $indexInfo->getName() . '`';
                 break;
             default:
                 $type = 'INDEX `' . $indexInfo->getName() . '`';

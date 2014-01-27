@@ -2,6 +2,9 @@
 
 namespace Phalcon\Db\Adapter\Pdo;
 
+use Phalcon\Db\RasIndex as Index;
+use Phalcon\Db\FullTextIndex;
+use Phalcon\Db\UniqueIndex;
 use \Phalcon\Db\RasColumn as Column;
 
 class RasMysql extends Mysql {
@@ -105,6 +108,39 @@ class RasMysql extends Mysql {
         }
 
         return new Column($columnInfo['Field'], $column);
+    }
+
+    public function describeIndexes($table, $schema=null)
+    {
+        if (null !== $schema) {
+            $table = $schema . '.' . $table;
+        }
+        $indexes = [];
+        $groupedIndexes = [];
+        $result = $this->fetchAll("SHOW INDEX FROM " . $table, \Pdo::FETCH_ASSOC);
+        foreach ($result as $row) {
+            $groupedIndexes[$row['Key_name']] = $row;
+        }
+        foreach ($groupedIndexes as $indexName => $index) {
+            $indexes[$indexName] = $this->getIndex($indexName, $index);
+        }
+        return $indexes;
+    }
+
+    protected function getIndex($name, $fields)
+    {
+        $columns = array_intersect_key($fields, ['Column_name' => 1]);
+        switch ($fields['Index_type']) {
+            case Index::TYPE_FULLTEXT:
+                return new FullTextIndex($name, $columns);
+                break;
+            case Index::TYPE_UNIQUE:
+                return new UniqueIndex($name, $columns);
+                break;
+            case Index::TYPE_BTREE:
+            default:
+                return new Index($name, $columns);
+        }
     }
 
     /**
