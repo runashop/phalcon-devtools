@@ -168,11 +168,13 @@ class Migrations
         }
 
         $dump = $options['dump'];
+        $useRas = $options['use-ras'];
         $ignoreDrop = $options['ignore-drop'];
         $ignoreAlter = $options['ignore-alter'];
 
         $options = [
             'dump' => $dump,
+            'useRas' => $useRas,
             'ignoreDrop' => $ignoreDrop,
             'ignoreAlter' => $ignoreAlter,
         ];

@@ -50,7 +50,8 @@ class Migration extends Command implements CommandsInterface
         'force'         => "Forces to overwrite existing migrations.",
         'dump'          => "Do not execute queries, only show them",
         'ignore-drop'   => "Do not execute drop queries",
-        'ignore-alter'  => "Do not execute alter queries"
+        'ignore-alter'  => "Do not execute alter queries",
+        'use-ras'       => "Use RAS classses",
     );
 
     /**
@@ -160,6 +161,7 @@ class Migration extends Command implements CommandsInterface
                 'force' => $this->isReceivedOption('force'),
                 'config' => $config,
                 'dump' => $this->isReceivedOption('dump'),
+                'use-ras' => $this->isReceivedOption('use-ras'),
                 'ignore-drop' => $this->isReceivedOption('ignore-drop'),
                 'ignore-alter' => $this->isReceivedOption('ignore-alter'),
             ));
@@ -171,6 +173,7 @@ class Migration extends Command implements CommandsInterface
                     'force' => $this->isReceivedOption('force'),
                     'config' => $config,
                     'dump' => $this->isReceivedOption('dump'),
+                    'use-ras' => $this->isReceivedOption('use-ras'),
                     'ignore-drop' => $this->isReceivedOption('ignore-drop'),
                     'ignore-alter' => $this->isReceivedOption('ignore-alter'),
                 ));
