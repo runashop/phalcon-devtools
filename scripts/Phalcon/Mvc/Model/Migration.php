@@ -60,7 +60,6 @@ class Migration
      */
     private static $_migrationPath = null;
 
-    private static $_dump = false;
     private static $_ignoreDrop = false;
     private static $_ignoreAlter = false;
 
@@ -77,12 +76,11 @@ class Migration
         if ( ! isset($database->adapter))
             throw new \Phalcon\Exception('Unspecified database Adapter in your configuration!');
 
-        self::$_dump = isset($options['dump']) ? (bool)$options['dump'] : false;
-        $useRas = isset($options['useRas']) ? true : false;
+        $dump = isset($options['dump']) ? (bool)$options['dump'] : false;
         self::$_ignoreDrop  = isset($options['ignoreDrop']) ? (bool)$options['ignoreDrop'] : false;
         self::$_ignoreAlter = isset($options['ignoreAlter']) ? (bool)$options['ignoreAlter'] : false;
 
-        if ($useRas) {
+        if ($dump) {
             $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\Dump';
         } else {
             $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\RasMysql';
@@ -96,7 +94,7 @@ class Migration
         self::$_connection = new $adapter($configArray);
         self::$_databaseConfig = $database;
 
-        if ( \Phalcon\Migrations::isConsole() && !self::$_dump) {
+        if ( \Phalcon\Migrations::isConsole() && !$dump) {
             $profiler = new Profiler();
 
             $eventsManager = new EventsManager();
