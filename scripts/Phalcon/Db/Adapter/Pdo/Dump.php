@@ -86,7 +86,7 @@ class Dump extends Mysql
         }
         $sql[] = join(',', $keys);
         $sql[] = ") ENGINE = " . $definition['options']['ENGINE'];
-        $sql[] = "AUTO_INCREMENT = " . $definition['options']['AUTO_INCREMENT'];
+        $sql[] = !empty($definition['options']['AUTO_INCREMENT']) ? "AUTO_INCREMENT = " . $definition['options']['AUTO_INCREMENT'] : '';
         $sql[] = "COLLATE = " . $definition['options']['TABLE_COLLATION'];
         return implode(' ', $sql);
     }
