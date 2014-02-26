@@ -6,7 +6,7 @@ use \Phalcon\Db\Column as PhalconColumn;
 use \Phalcon\Db\RasColumn as Column;
 use \Phalcon\Db\Index;
 
-class Dump extends Mysql
+class Dump extends RasMysql
 {
 
     static protected $_types = [
@@ -144,12 +144,12 @@ class Dump extends Mysql
 
     public function addPrimaryKey($tableName, $schemaName, $index)
     {
-        echo "ALTER TABLE ADD " . $this->getCreateTableIndex($index) . ";" . PHP_EOL;
+        echo "ALTER TABLE `{$tableName}` ADD " . $this->getCreateTableIndex($index) . ";" . PHP_EOL;
     }
 
     public function dropPrimaryKey($tableName, $schemaName)
     {
-        echo "DROP PRIMARY KEY;" . PHP_EOL;
+        echo "ALTER TABLE `{$tableName}` DROP PRIMARY KEY;" . PHP_EOL;
     }
 
     public function addForeignKey($tableName, $schemaName, $reference)
