@@ -155,16 +155,23 @@ class Migration
         $allFields = array();
         $numericFields = array();
         $tableDefinition = array();
+        $t1 = "\t";
+        $t2 = str_repeat($t1, 2);
+        $t3 = str_repeat($t1, 3);
+        $t4 = str_repeat($t1, 4);
+        $t5 = str_repeat($t1, 5);
+        $t6 = str_repeat($t1, 6);
+        $t7 = str_repeat($t1, 7);
 
-                if (isset(self::$_databaseConfig->schema)) {
-                        $defaultSchema = self::$_databaseConfig->schema;
-                } elseif (isset(self::$_databaseConfig->adapter) && self::$_databaseConfig->adapter == 'Postgresql') {
-                        $defaultSchema =  'public';
-                } elseif (isset(self::$_databaseConfig->dbname)) {
-                        $defaultSchema = self::$_databaseConfig->dbname;
-                } else {
-                        $defaultSchema = null;
-                }
+        if (isset(self::$_databaseConfig->schema)) {
+                $defaultSchema = self::$_databaseConfig->schema;
+        } elseif (isset(self::$_databaseConfig->adapter) && self::$_databaseConfig->adapter == 'Postgresql') {
+                $defaultSchema =  'public';
+        } elseif (isset(self::$_databaseConfig->dbname)) {
+                $defaultSchema = self::$_databaseConfig->dbname;
+        } else {
+                $defaultSchema = null;
+        }
 
         $description = self::$_connection->describeColumns($table, $defaultSchema);
         /** @var $field RasColumn */
@@ -249,7 +256,7 @@ class Migration
             }
 
             $oldColumn = $field->getName();
-            $tableDefinition[] = "\t\t\t\tnew Column(\n\t\t\t\t\t'" . $field->getName() . "',\n\t\t\t\t\tarray(\n\t\t\t\t\t\t" . join(",\n\t\t\t\t\t\t", $fieldDefinition) . "\n\t\t\t\t\t)\n\t\t\t\t)";
+            $tableDefinition[] = "{$t5}new Column(\n{$t6}'" . $field->getName() . "',\n{$t6}[\n{$t7}" . join(",\n{$t7}", $fieldDefinition) . ",\n{$t6}]\n{$t5})";
             $allFields[] = "'".$field->getName()."'";
         }
 
@@ -262,7 +269,7 @@ class Migration
             }
             $class = explode('\\',get_class($dbIndex));
             $class = array_pop($class);
-            $indexesDefinition[] = "\t\t\t\tnew {$class}('".$indexName."', array(" . join(", ", $indexDefinition) . "))";
+            $indexesDefinition[] = "{$t5}new {$class}('".$indexName."', [" . join(", ", $indexDefinition) . "])";
         }
 
         $referencesDefinition = array();
@@ -283,15 +290,17 @@ class Migration
             $referenceDefinition[] = "'referencedSchema' => '" . $dbReference->getReferencedSchema() . "'";
             $referenceDefinition[] = "'referencedTable' => '" . $dbReference->getReferencedTable() . "'";
             $referenceDefinition[] = "'columns' => array(" . join(",", $columns) . ")";
-            $referenceDefinition[] = "'referencedColumns' => array(".join(",", $referencedColumns) . ")";
+            $referenceDefinition[] = "'referencedColumns' => [".join(",", $referencedColumns) . "]";
 
-            $referencesDefinition[] = "\t\t\t\tnew Reference('" . $constraintName."', array(\n\t\t\t\t\t" . join(",\n\t\t\t\t\t", $referenceDefinition) . "\n\t\t\t\t))";
+            $referencesDefinition[] = "{$t5}new Reference('" . $constraintName."', [\n{$t6}" . join(",\n{$t6}", $referenceDefinition) . "\n{$t5}])";
         }
 
         $optionsDefinition = array();
         $tableOptions = self::$_connection->tableOptions($table, $defaultSchema);
         foreach ($tableOptions as $optionName => $optionValue) {
-            $optionsDefinition[] = "\t\t\t\t'" . strtoupper($optionName) . "' => '" . $optionValue . "'";
+            if (strtoupper($optionName) !== 'AUTO_INCREMENT') {
+                $optionsDefinition[] = "{$t5}'" . strtoupper($optionName) . "' => '" . $optionValue . "'";
+            }
         }
 
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', $version);
@@ -305,22 +314,22 @@ use Phalcon\\Db\\UniqueIndex;
 
 class ".$className." extends Migration\n".
 "{\n\n".
-        "\tpublic function up()\n".
-        "\t{\n\t\t\$this->morphTable(\n\t\t\t'" . $table . "',\n\t\t\tarray(" .
-        "\n\t\t\t'columns' => array(\n" . join(",\n", $tableDefinition) . "\n\t\t\t),";
+        "{$t1}public function up()\n".
+        "{$t1}{\n{$t2}\$this->morphTable(\n{$t3}'" . $table . "',\n{$t3}[" .
+        "\n{$t4}'columns' => [\n" . join(",\n", $tableDefinition) . ",\n{$t4}],";
         if (count($indexesDefinition)) {
-            $classData .= "\n\t\t\t'indexes' => array(\n" . join(",\n", $indexesDefinition) . "\n\t\t\t),";
+            $classData .= "\n{$t4}'indexes' => [\n" . join(",\n", $indexesDefinition) . ",\n{$t4}],";
         }
 
         if (count($referencesDefinition)) {
-            $classData .= "\n\t\t\t'references' => array(\n".join(",\n", $referencesDefinition) . "\n\t\t\t),";
+            $classData .= "\n{$t4}'references' => [\n".join(",\n", $referencesDefinition) . ",\n{$t5}],";
         }
 
         if (count($optionsDefinition)) {
-            $classData .= "\n\t\t\t'options' => array(\n".join(",\n", $optionsDefinition) . "\n\t\t\t)\n";
+            $classData .= "\n{$t4}'options' => [\n".join(",\n", $optionsDefinition) . ",\n{$t4}],\n";
         }
 
-        $classData .= "\t\t)\n\t\t);\n\t}";
+        $classData .= "{$t3}]\n{$t2});\n{$t1}}";
         if ($exportData == 'always' || $exportData == 'oncreate') {
 
             if ($exportData == 'oncreate') {
@@ -328,7 +337,7 @@ class ".$className." extends Migration\n".
             } else {
                 $classData .= "\n\n\tpublic function afterUp() {\n";
             }
-            $classData .= "\t\t\$this->batchInsert('$table', array(\n\t\t\t" . join(",\n\t\t\t", $allFields) . "\n\t\t));";
+            $classData .= "\t\t\$this->batchInsert('$table', [\n\t\t\t" . join(",\n\t\t\t", $allFields) . ",\n\t\t]);";
 
             $fileHandler = fopen(self::$_migrationPath . '/' . $table . '.dat', 'w');
             $cursor = self::$_connection->query('SELECT * FROM ' . $table);
@@ -355,8 +364,8 @@ class ".$className." extends Migration\n".
 
             $classData.="\n\t}";
         }
-        $classData.="\n}\n";
-        $classData = str_replace("\t", "    ", $classData);
+        $classData.="\n\n}\n";
+        $classData = str_replace("{$t1}", "    ", $classData);
 
         return $classData;
     }
