@@ -32,10 +32,9 @@ class RasColumn extends Column{
         if ($definition['type'] === static::TYPE_ENUM) {
             $this->_values = $definition['values'];
         }
-        if (isset($definition['default'])) {
-            $this->_defaultValue = $definition['default'];
+        if (isset($definition['defaultValue'])) {
+            $this->_defaultValue = $definition['defaultValue'];
         }
-
         if ($definition['type'] >= 32) { // additional fields
             $this->fillColumn($columnName, $definition);
         } else {

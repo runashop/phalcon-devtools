@@ -30,15 +30,25 @@ class Dump extends RasMysql
         $values = ($v
                     ? '(' . implode(',', array_map(function($q){ return "'" . addslashes($q) . "'";}, $v)) . ')'
                     : null);
+        $size = null;
+        if ($columnInfo->getSize()) {
+            $size = ["(", $columnInfo->getSize()];
+            if ($columnInfo->getScale()) {
+                $size[] = ", " . $columnInfo->getScale();
+            }
+            $size[] = ")";
+            $size = join('', $size);
+        }
         $result = [
             '`' . $columnInfo->getName() . '`',
             ('' !== $columnInfo->getType()) ? self::$_types[$columnInfo->getType()] : null,
-            $columnInfo->getSize() ? '(' . $columnInfo->getSize() . ')' : $values,
+            $size ? $size : $values,
             ($columnInfo->isUnsigned()) ? "UNSIGNED" : null,
             ($columnInfo->isNotNull()) ? "NOT NULL" : null,
             ($columnInfo->isAutoIncrement()) ? "AUTO_INCREMENT" : null,
             ($columnInfo->getDefault()) ? "DEFAULT " . $columnInfo->getDefault() : null,
         ];
+
         return join(' ', array_values($result));
     }
 
