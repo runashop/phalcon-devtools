@@ -454,6 +454,10 @@ class ".$className." extends Migration\n".
                             $changed = true;
                         }
 
+                        if ($tableColumn->getSize() != $localFields[$fieldName]->getSize()) {
+                            $changed = true;
+                        }
+
                         if ($changed == true && !self::$_ignoreAlter) {
                             self::$_connection->modifyColumn($tableName, $tableColumn->getSchemaName(), $tableColumn);
                         }
