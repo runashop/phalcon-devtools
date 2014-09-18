@@ -230,7 +230,7 @@ class Migration
             }
 
             if ($field->getDefault()) {
-                $fieldDefinition[] = "'defaultValue' => '" . addslashes($field->getDefault()) . "'";
+                $fieldDefinition[] = "'default' => '" . addslashes($field->getDefault()) . "'";
             }
 
             if ($field->getSize()) {
@@ -455,6 +455,10 @@ class ".$className." extends Migration\n".
                         }
 
                         if ($tableColumn->getSize() != $localFields[$fieldName]->getSize()) {
+                            $changed = true;
+                        }
+
+                        if ($tableColumn->getDefault() != $localFields[$fieldName]->getDefault()) {
                             $changed = true;
                         }
 
