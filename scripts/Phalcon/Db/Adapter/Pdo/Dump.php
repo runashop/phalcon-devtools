@@ -46,7 +46,7 @@ class Dump extends RasMysql
             ($columnInfo->isUnsigned()) ? "UNSIGNED" : null,
             ($columnInfo->isNotNull()) ? "NOT NULL" : null,
             ($columnInfo->isAutoIncrement()) ? "AUTO_INCREMENT" : null,
-            ($columnInfo->getDefault()) ? "DEFAULT '" . addslashes($columnInfo->getDefault()) . "'" : null,
+            (null !== $columnInfo->getDefault()) ? "DEFAULT '" . addslashes($columnInfo->getDefault()) . "'" : null,
         ];
 
         return join(' ', array_values($result));

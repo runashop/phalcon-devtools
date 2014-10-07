@@ -129,6 +129,10 @@ class Migrations
         $migrationsDir = $options['migrationsDir'];
         $config = $options['config'];
 
+        set_include_path(get_include_path() . PATH_SEPARATOR . realpath($migrationsDir . '/../..'));
+        $result = include('.' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+        $result->setUseIncludePath(true);
+
         if (isset($options['tableName'])) {
             $tableName = $options['tableName'];
         } else {
