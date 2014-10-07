@@ -130,8 +130,9 @@ class Migrations
         $config = $options['config'];
 
         set_include_path(get_include_path() . PATH_SEPARATOR . realpath($migrationsDir . '/../..'));
-        $result = include('.' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
-        $result->setUseIncludePath(true);
+        $loaderPath = sprintf('.%sapp%sconfig%sloader.php', DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
+        $result = include($loaderPath);
+
 
         if (isset($options['tableName'])) {
             $tableName = $options['tableName'];
