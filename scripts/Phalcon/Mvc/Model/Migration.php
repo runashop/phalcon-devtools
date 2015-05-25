@@ -304,14 +304,21 @@ class Migration
         }
 
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', $version);
-        $className = \Phalcon\Text::camelize($table) . 'Migration_'.$classVersion;
-        $classData = "use Phalcon\\Db\\RasColumn as Column;
+        $className = \Phalcon\Text::camelize(trim($table, '_')) . 'Migration'.$classVersion;
+
+        $classData = "namespace Migration;
+
+use Phalcon\\Db\\RasColumn as Column;
 use Phalcon\\Db\\Reference;
 use Phalcon\\Mvc\\Model\\Migration;
 use Phalcon\\Db\\RasIndex;
 use Phalcon\\Db\\FullTextIndex;
 use Phalcon\\Db\\UniqueIndex;
 
+/**
+ * Class ".$className."
+ * @package Migration
+ */
 class ".$className." extends Migration\n".
 "{\n\n".
         "{$t1}public function up()\n".
@@ -383,7 +390,8 @@ class ".$className." extends Migration\n".
         if (file_exists($filePath)) {
             $fileName = basename($filePath);
             $classVersion = preg_replace('/[^0-9A-Za-z]/', '', $version);
-            $className = \Phalcon\Text::camelize(str_replace('.php', '', $fileName)).'Migration_'.$classVersion;
+            $className = \Phalcon\Text::camelize(str_replace('.php', '', trim($fileName, '_'))).'Migration'.$classVersion;
+            $className = "Migration\\{$className}";
             require $filePath;
             if (class_exists($className)) {
                 $migration = new $className();
